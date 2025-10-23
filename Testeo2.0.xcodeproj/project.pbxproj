@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		840EF17F2E984D36001804AB /* prueba.swift in Sources */ = {isa = PBXBuildFile; fileRef = 840EF17E2E984D36001804AB /* prueba.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
-		82241DAB2E87D58F0098AF90 /* Testeo2.0.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Testeo2.0.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		82241DAB2E87D58F0098AF90 /* FraudX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FraudX.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		840EF17E2E984D36001804AB /* prueba.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = prueba.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -32,6 +37,7 @@
 		82241DA22E87D58F0098AF90 = {
 			isa = PBXGroup;
 			children = (
+				840EF17E2E984D36001804AB /* prueba.swift */,
 				82241DAD2E87D58F0098AF90 /* Testeo2.0 */,
 				82241DAC2E87D58F0098AF90 /* Products */,
 			);
@@ -40,7 +46,7 @@
 		82241DAC2E87D58F0098AF90 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				82241DAB2E87D58F0098AF90 /* Testeo2.0.app */,
+				82241DAB2E87D58F0098AF90 /* FraudX.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,9 +54,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		82241DAA2E87D58F0098AF90 /* Testeo2.0 */ = {
+		82241DAA2E87D58F0098AF90 /* FraudX */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 82241DB62E87D5910098AF90 /* Build configuration list for PBXNativeTarget "Testeo2.0" */;
+			buildConfigurationList = 82241DB62E87D5910098AF90 /* Build configuration list for PBXNativeTarget "FraudX" */;
 			buildPhases = (
 				82241DA72E87D58F0098AF90 /* Sources */,
 				82241DA82E87D58F0098AF90 /* Frameworks */,
@@ -63,11 +69,11 @@
 			fileSystemSynchronizedGroups = (
 				82241DAD2E87D58F0098AF90 /* Testeo2.0 */,
 			);
-			name = Testeo2.0;
+			name = FraudX;
 			packageProductDependencies = (
 			);
 			productName = Testeo2.0;
-			productReference = 82241DAB2E87D58F0098AF90 /* Testeo2.0.app */;
+			productReference = 82241DAB2E87D58F0098AF90 /* FraudX.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -99,7 +105,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				82241DAA2E87D58F0098AF90 /* Testeo2.0 */,
+				82241DAA2E87D58F0098AF90 /* FraudX */,
 			);
 		};
 /* End PBXProject section */
@@ -119,6 +125,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				840EF17F2E984D36001804AB /* prueba.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -318,7 +325,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		82241DB62E87D5910098AF90 /* Build configuration list for PBXNativeTarget "Testeo2.0" */ = {
+		82241DB62E87D5910098AF90 /* Build configuration list for PBXNativeTarget "FraudX" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				82241DB72E87D5910098AF90 /* Debug */,
