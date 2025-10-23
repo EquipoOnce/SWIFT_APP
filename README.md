@@ -2,7 +2,7 @@
 
 Una aplicación iOS nativa desarrollada en SwiftUI que permite a los usuarios reportar y verificar sitios web fraudulentos de manera colaborativa y segura.
 
-Características Principales
+## Características Principales
 
 - Reporte de Incidentes: Reporta URLs sospechosas con descripción detallada, categoría y evidencia fotográfica
 - Validación Comunitaria: Acceso a un feed público de reportes verificados por la comunidad
@@ -14,12 +14,12 @@ Características Principales
 - Soporte Anónimo: Opción para reportar de forma anónima
 
 
-#Frontend
+## Frontend
 - SwiftUI - Framework declarativo para UI
 - iOS 16.0+ - Versión mínima requerida
 - Xcode 16.4+
 
-##Backend
+## Backend
 Consultar los demas repositorios que pertenencen a esta organizacion
 
 ##Networking & Seguridad
@@ -30,7 +30,7 @@ Consultar los demas repositorios que pertenencen a esta organizacion
 - Multipart Form-Data - Para subida de imágenes
 
 
-##Flujo de Uso
+## Flujo de Uso
 Primera vez
 
 Abre la app → Pantalla de Bienvenida (ContentView)
