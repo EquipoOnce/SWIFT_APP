@@ -11,7 +11,7 @@ struct ProfileAPI{
     private let executor = RequestExecutor()
     
     func fetchMe() async throws -> PublicProfileDTO {
-        guard let url = URL(string: "http://10.48.228.126:3000/users/me") else {
+        guard let url = URL(string: "http://10.48.251.159:3000/users/me") else {
             throw URLError(.badURL)
         }
         var urlRequest = URLRequest(url: url)
@@ -24,7 +24,7 @@ struct ProfileAPI{
     }
     
     func updateProfile(name: String?, email: String?) async throws {
-        guard let url = URL(string: "http://10.48.228.126:3000/users/modify") else {
+        guard let url = URL(string: "http://10.48.251.159:3000/users/modify") else {
             throw URLError(.badURL)
         }
         

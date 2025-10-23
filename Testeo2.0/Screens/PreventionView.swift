@@ -1,24 +1,17 @@
-//
-//  PreventionView.swift
-//  Testeo2.0
-//
-//  Created by Iker on 05/10/25.
-//
-
 import SwiftUI
 
 struct PreventionView: View {
     
     // Placeholder URLs for links (replace with actual ones)
     let infographicItems = [
-        ("Identifica Estafas Comunes", "Aprende a reconocer las señales de advertencia de las estafas más frecuentes, desde correos electrónicos", "https://example.com/infografia1"),
-        ("Otra Infografía", "Descripción de la segunda infografía", "https://example.com/infografia2"),
-        ("Tercera Infografía", "Descripción de la tercera", "https://example.com/infografia3")
+        ("Manuales de apoyo", "Manuales de recuperacion de cuenta y de respaldo ", "https://redporlaciberseguridad.org/manuales/", "https://redporlaciberseguridad.org/wp-content/uploads/2025/01/ransomware-2320941_1280.jpg"),
+        ("Articulos de apoyo", "variedad de contenidos educativos y de actualidad sobre temas relacionados con la ciberseguridad", "https://redporlaciberseguridad.org/articulos-de-apoyo/", "https://redporlaciberseguridad.org/wp-content/uploads/2023/06/BANNER-WEBINAR-TODOS-11.png.webp"),
+        ("Conocenos", "Nuestra misión es fortalecer el ecosistema de ciberseguridad en México y Latinoamérica", "https://redporlaciberseguridad.org/acerca-de/", "https://redporlaciberseguridad.org/wp-content/uploads/2024/03/Academia-1536x1003.png")
     ]
     
     let resourceItems = [
-        ("Guia de Seguridad Bancaria", "Recursos y consejos del Banco Central", "https://example.com/guia-bancaria"),
-        ("Informes de Tendencias de Fraude", "Estadísticas y análisis actualizados", "https://example.com/informes-fraude")
+        ("Pagina principal", "Pagina de Red por la ciberseguridad", "https://redporlaciberseguridad.org/"),
+        ("Conoce nuestros cursos", "Explora cursos sobre Ciberseguridad, Inteligencia Artificial y más, impartidos por expertos de Red por la Ciberseguridad.", "https://academia.redporlaciberseguridad.org/")
     ]
     
     var body: some View {
@@ -45,18 +38,19 @@ struct PreventionView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
                                 ForEach(infographicItems, id: \.0) { item in
-                                    Link(destination: URL(string: item.2)!) {
+                                    let (_, _, link, imageURL) = item
+                                    Link(destination: URL(string: link)!) {
                                         VStack(alignment: .leading, spacing: 8) {
-                                            // Placeholder image
-                                            Rectangle()
-                                                .fill(Color.gray.opacity(0.2))
-                                                .frame(width: 200, height: 150)
-                                                .cornerRadius(8)
-                                                .overlay(
-                                                    Image(systemName: "photo")
-                                                        .foregroundColor(.gray)
-                                                        .font(.largeTitle)
-                                                )
+                                            // AsyncImage for the image
+                                            AsyncImage(url: URL(string: imageURL)) { image in
+                                                image
+                                                    .resizable()
+                                                    .scaledToFit()
+                                            } placeholder: {
+                                                ProgressView()
+                                            }
+                                            .frame(width: 200, height: 150)
+                                            .cornerRadius(8)
                                             
                                             Text(item.0)
                                                 .font(Font.custom("Roboto", size: 16).weight(.medium))

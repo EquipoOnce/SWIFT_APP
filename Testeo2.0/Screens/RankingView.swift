@@ -1,97 +1,19 @@
-//
-//  RankingView.swift
-//  Testeo2.0
-//
-//  Created by Iker on 06/10/25.
-//
-
 import SwiftUI
 
 struct RankingView: View {
-    // Mock data from "database" – replace with actual fetch in real app
-    let topURLs = [
-        ("1", "Categoria 1", "http://examplefraud.com"),
-        ("2", "Categoria 2", "http://examplefraud.com"),
-        ("3", "Categoria 4", "http://examplefraud.com"),
-        ("4", "Categoria 1", "http://examplefraud.com"),
-        ("5", "Categoria 2", "http://examplefraud.com"),
-        ("6", "Categoria 3", "http://examplefraud.com"),
-        ("7", "Categoria 4", "http://examplefraud.com"),
-        ("8", "Categoria 3", "http://examplefraud.com"),
-        ("9", "Categoria 3", "http://examplefraud.com"),
-        ("10", "Categoria 1", "http://examplefraud.com")
-    ]
-    
+    @State private var items: [TopDomainItemDTO] = []
+    @State private var isLoading = false
+    @State private var errorText: String?
+
+    private let api = ReportsAPI()
+
     var body: some View {
         NavigationStack {
             ZStack {
-                // Background
-                Color.white
-                    .ignoresSafeArea()
-                
+                Color.white.ignoresSafeArea()
+
                 VStack(spacing: 0) {
-                    // Top bar
-                    HStack {
-                        // Profile icon (clickable to profile)
-                        NavigationLink(destination: ContentView2()) {
-                            Circle()
-                                .fill(Color.black)
-                                .frame(width: 40, height: 40)
-                                .overlay(
-                                    Image(systemName: "person.fill")
-                                        .foregroundColor(.white)
-                                )
-                        }
-                        
-                        // Logo and Title
-                        VStack(spacing: 0) {
-                            Text("*")  // Placeholder for logo, replace with Image("logo") later
-                                .font(.system(size: 30))
-                                .foregroundColor(.black)
-                            Text("FraudX")
-                                .font(Font.custom("Inter", size: 24).weight(.bold))
-                                .foregroundColor(Color(red: 0.09, green: 0.10, blue: 0.12))
-                        }
-                        
-                        Spacer()
-                        
-                        // Search icon (clickable to search screen)
-                        NavigationLink(destination: SearchView()) {
-                            Image(systemName: "magnifyingglass")
-                                .font(.system(size: 24))
-                                .foregroundColor(Color(red: 0.27, green: 0.35, blue: 0.39))
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 10)
-                    
-                    // Tabs: Comunidad, Ranking (selected)
-                    HStack(spacing: 16) {
-                        NavigationLink(destination: HomeView()) {
-                            Text("Comunidad")
-                                .font(Font.custom("Roboto", size: 16).weight(.medium))
-                                .foregroundColor(Color(red: 0.27, green: 0.35, blue: 0.39))
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 8)
-                                .background(Color.white)
-                                .cornerRadius(20)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(Color(red: 0.27, green: 0.35, blue: 0.39), lineWidth: 1)
-                                )
-                        }
-                        
-                        Text("Ranking")
-                            .font(Font.custom("Roboto", size: 16).weight(.medium))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 8)
-                            .background(Color(red: 0.27, green: 0.35, blue: 0.39))
-                            .cornerRadius(20)
-                    }
-                    .padding(.horizontal)
-                    
-                    // Scrollable list with bottom padding to avoid overlap
+                    // Lista
                     ScrollView {
                         VStack(alignment: .leading, spacing: 16) {
                             Text("Top URLs mas reportadas")
@@ -99,26 +21,41 @@ struct RankingView: View {
                                 .foregroundColor(Color(red: 0.09, green: 0.10, blue: 0.12))
                                 .padding(.horizontal)
                                 .padding(.top, 20)
-                            
-                            ForEach(topURLs, id: \.0) { item in
-                                NavigationLink(destination: SearchView(query: item.2)) {  // Auto-search the URL
+
+                            if let errorText {
+                                Text(errorText)
+                                    .foregroundColor(.red)
+                                    .padding(.horizontal)
+                            }
+
+                            if items.isEmpty && !isLoading && errorText == nil {
+                                Text("No hay elementos")
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal)
+                            }
+
+                            ForEach(Array(items.enumerated()), id: \.offset) { idx, item in
+                                // Respetamos TU lógica: ir a SearchView(query: url)
+                                let query = item.url ?? ""
+
+                                NavigationLink(destination: SearchView(query: query)) {
                                     HStack {
-                                        Text(item.0)
+                                        Text("\(idx + 1)")
                                             .font(Font.custom("Roboto", size: 16).weight(.medium))
                                             .foregroundColor(Color(red: 0.09, green: 0.10, blue: 0.12))
                                             .frame(width: 30, alignment: .leading)
-                                        
-                                        VStack(alignment: .leading) {
-                                            Text(item.1)
+
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(item.category ?? "—")
                                                 .font(Font.custom("Roboto", size: 14))
-                                                .foregroundColor(Color.gray)
-                                            Text("Url: \(item.2)")
+                                                .foregroundColor(.gray)
+                                            Text("Url: \(displayHost(from: query))")
                                                 .font(Font.custom("Roboto", size: 14))
-                                                .foregroundColor(Color.gray)
+                                                .foregroundColor(.gray)
+                                                .lineLimit(1)
                                         }
-                                        
+
                                         Spacer()
-                                        
                                         Image(systemName: "chevron.right")
                                             .foregroundColor(Color.gray)
                                     }
@@ -126,85 +63,53 @@ struct RankingView: View {
                                     .background(Color.white)
                                     .cornerRadius(8)
                                     .shadow(color: Color.black.opacity(0.05), radius: 5)
+                                    .opacity(query.isEmpty ? 0.5 : 1)
                                 }
+                                .disabled(query.isEmpty)
                                 .padding(.horizontal)
                             }
                         }
-                        .padding(.bottom, 100)  // Padding to prevent overlap with bottom nav
+                        .padding(.bottom, 100)
                     }
+                    .refreshable { await loadData() }
                 }
-                
-                // Bottom navigation
-                VStack {
-                    Spacer()
-                    HStack {
-                        // Inicio (selected)
-                        VStack {
-                            Image(systemName: "house.fill")
-                                .font(.system(size: 24))
-                                .foregroundColor(Color(red: 0.27, green: 0.35, blue: 0.39))
-                            Text("Inicio")
-                                .font(Font.custom("Roboto", size: 10))
-                                .foregroundColor(Color(red: 0.27, green: 0.35, blue: 0.39))
-                        }
-                        .frame(maxWidth: .infinity)
-                        
-                        // Registrar Incidente
-                        NavigationLink(destination: RegisterIncidentView()) {
-                            VStack {
-                                Image(systemName: "doc.text.fill")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(Color.gray)
-                                Text("Registrar Incidente")
-                                .font(Font.custom("Roboto", size: 10))
-                                .foregroundColor(Color.gray)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        
-                        // Historial
-                        NavigationLink(destination: HistorialView()) {
-                            VStack {
-                                Image(systemName: "clock.fill")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(Color.gray)
-                                Text("Historial")
-                                .font(Font.custom("Roboto", size: 10))
-                                .foregroundColor(Color.gray)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        
-                        // Prevencion
-                        NavigationLink(destination: PreventionView()) {
-                            VStack {
-                                Image(systemName: "rosette")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(Color.gray)
-                                Text("Prevencion")
-                                .font(Font.custom("Roboto", size: 10))
-                                .foregroundColor(Color.gray)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .padding()
-                    .background(Color.white)
-                    .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: -2)
-                }
+
+                // Bottom navigation (igual que tenías)
+                 
+
+                if isLoading { ProgressView().scaleEffect(1.1) }
             }
             .navigationBarHidden(true)
+            .onAppear { Task { await loadData() } }
         }
     }
-}
 
-// Assume SearchView accepts a query parameter for auto-search
-struct SearchView: View {
-    var query: String = ""
-    
-    var body: some View {
-        Text("Búsqueda para: \(query)")
-            .navigationTitle("Buscar")
+    // MARK: - Data
+    private func loadData() async {
+        await MainActor.run { isLoading = true; errorText = nil }
+        defer { Task { await MainActor.run { isLoading = false } } }
+
+        do {
+            // Ajusta window/limit si quieres
+            let rs = try await api.fetchTopDomains(windowDays: 30, limit: 10, offset: 0)
+            await MainActor.run { self.items = rs }
+        } catch {
+            await MainActor.run { self.errorText = "Error al cargar ranking: \(error.localizedDescription)" }
+        }
+    }
+
+    // MARK: - Helpers
+    private func displayHost(from raw: String) -> String {
+        // Muestra bonito el host (sin esquema ni path);
+        // si no es URL válida, regresa el raw truncado.
+        if let url = URL(string: raw), let host = url.host {
+            return host
+        }
+        // Intento simple si viene sin esquema
+        if let url = URL(string: "https://\(raw)"), let host = url.host {
+            return host
+        }
+        return raw
     }
 }
 

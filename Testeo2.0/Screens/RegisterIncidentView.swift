@@ -6,14 +6,28 @@ struct RegisterIncidentView: View {
     @State private var description: String = ""
     @State private var isAnonymous: Bool = false
     @State private var selectedCategory: String = "Categoría"
-    let categories = ["Categoría 1", "Categoría 2", "Categoría 3", "Categoría 4"]
-    @State private var selectedPhoto: PhotosPickerItem? = nil
     @State private var photoImage: Image? = nil
     @State private var showingImagePicker = false
     @State private var inputImage: UIImage?
     @State private var sourceType: UIImagePickerController.SourceType = .photoLibrary
     @State private var alertMessage = ""
     @State private var showAlert = false
+    @State private var showPhotoOptions = false
+    @State private var showCategorySheet = false
+    @State private var isSubmitting = false
+    @State private var errorText: String?
+    @State private var createdId: Int?
+    
+    private let api = ReportsAPI()
+    private let maxWordsDescription = 500
+    
+    private let categoryMap: [String: Int] = [
+        "Tecnologia": 1,
+        "Viajes": 2,
+        "Negocios": 3,
+        "Redes Sociales": 4,
+        "Educacion": 10,
+    ]
     
     var body: some View {
         NavigationStack {
@@ -21,7 +35,6 @@ struct RegisterIncidentView: View {
                 Color.white.opacity(0.9)
                     .ignoresSafeArea()
                 
-                // ScrollView principal para permitir desplazamiento
                 ScrollView {
                     VStack(spacing: 20) {
                         // Title
@@ -55,9 +68,15 @@ struct RegisterIncidentView: View {
                         
                         // Description Section
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Descripción del Incidente")
-                                .font(Font.custom("Roboto", size: 14))
-                                .foregroundColor(Color(red: 0.34, green: 0.36, blue: 0.43))
+                            HStack {
+                                Text("Descripción del Incidente")
+                                    .font(Font.custom("Roboto", size: 14))
+                                    .foregroundColor(Color(red: 0.34, green: 0.36, blue: 0.43))
+                                Spacer()
+                                Text("\(description.split(separator: " ").count)/\(maxWordsDescription)")
+                                    .font(Font.custom("Roboto", size: 12))
+                                    .foregroundColor(Color.gray)
+                            }
                             
                             HStack {
                                 Image(systemName: "pencil")
@@ -65,6 +84,12 @@ struct RegisterIncidentView: View {
                                 TextEditor(text: $description)
                                     .font(Font.custom("Roboto", size: 16))
                                     .frame(minHeight: 100)
+                                    .onChange(of: description) { newValue in
+                                        let words = newValue.split(separator: " ")
+                                        if words.count > maxWordsDescription {
+                                            description = words.prefix(maxWordsDescription).joined(separator: " ")
+                                        }
+                                    }
                                     .overlay(
                                         Text("Detalla qué sucedió, cómo te diste cuenta y cualquier otra información relevante.")
                                             .foregroundColor(Color.gray.opacity(0.8))
@@ -87,14 +112,14 @@ struct RegisterIncidentView: View {
                                     .font(Font.custom("Roboto", size: 16))
                                     .foregroundColor(Color(red: 0.34, green: 0.36, blue: 0.43))
                             }
-                            .toggleStyle(SwitchToggleStyle(tint: Color(Color(red: 0.27, green: 0.35, blue: 0.39))))
+                            .toggleStyle(SwitchToggleStyle(tint: Color(red: 0.27, green: 0.35, blue: 0.39)))
                             
                             Spacer()
                             
                             Menu {
                                 Picker("Categoría", selection: $selectedCategory) {
-                                    ForEach(categories, id: \.self) { category in
-                                        Text(category)
+                                    ForEach(categoryMap.keys.sorted(), id: \.self) { key in
+                                        Text(key)
                                     }
                                 }
                             } label: {
@@ -122,31 +147,9 @@ struct RegisterIncidentView: View {
                                 .font(Font.custom("Roboto", size: 14))
                                 .foregroundColor(Color.gray)
                             
-                            Menu {
-                                Button(action: {
-                                    guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
-                                        alertMessage = "La cámara no está disponible en este dispositivo"
-                                        showAlert = true
-                                        return
-                                    }
-                                    sourceType = .camera
-                                    showingImagePicker = true
-                                }) {
-                                    Label("Tomar foto", systemImage: "camera")
-                                }
-                                
-                                Button(action: {
-                                    guard UIImagePickerController.isSourceTypeAvailable(.photoLibrary) else {
-                                        alertMessage = "No se puede acceder a la galería de fotos"
-                                        showAlert = true
-                                        return
-                                    }
-                                    sourceType = .photoLibrary
-                                    showingImagePicker = true
-                                }) {
-                                    Label("Seleccionar de galería", systemImage: "photo.on.rectangle")
-                                }
-                            } label: {
+                            Button(action: {
+                                showPhotoOptions = true
+                            }) {
                                 HStack {
                                     Image(systemName: "camera")
                                     Text("Foto")
@@ -157,42 +160,66 @@ struct RegisterIncidentView: View {
                                 .background(Color(red: 0.27, green: 0.35, blue: 0.39))
                                 .cornerRadius(20)
                             }
+                            .confirmationDialog("Seleccionar fuente", isPresented: $showPhotoOptions, titleVisibility: .visible) {
+                                Button("Tomar foto") {
+                                    sourceType = .camera
+                                    showingImagePicker = true
+                                }
+                                
+                                Button("Seleccionar de galería") {
+                                    sourceType = .photoLibrary
+                                    showingImagePicker = true
+                                }
+                                
+                                Button("Cancelar", role: .cancel) { }
+                            }
                             
-                            // Imagen con tamaño limitado
                             if let photoImage = photoImage {
                                 photoImage
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(maxHeight: 250) // Limitar altura máxima
+                                    .frame(maxHeight: 250)
                                     .cornerRadius(8)
-                                    .padding(.horizontal) // Añadir padding horizontal
+                                    .padding(.horizontal)
                             }
                         }
                         .padding(.horizontal)
                         
                         // Report Button
-                        NavigationLink(destination: SuccessView()) {
-                            Text("Reportar Incidente")
-                                .font(Font.custom("Roboto", size: 16).weight(.semibold))
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color(red: 0.27, green: 0.35, blue: 0.39))
-                                .cornerRadius(20)
+                        Button(action: submitIncident) {
+                            if isSubmitting {
+                                ProgressView()
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                            } else {
+                                Text("Reportar Incidente")
+                                    .font(Font.custom("Roboto", size: 16).weight(.semibold))
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                            }
                         }
+                        .background(Color(red: 0.27, green: 0.35, blue: 0.39))
+                        .cornerRadius(20)
                         .padding(.horizontal)
+                        .disabled(isSubmitting)
                         
-                        // Espaciador inferior para evitar que el menú tape el contenido
+                        if let errorText {
+                            Text(errorText)
+                                .font(.footnote)
+                                .foregroundColor(.red)
+                                .padding(.horizontal)
+                        }
+                        
                         Spacer(minLength: 100)
                     }
-                    .padding(.bottom, 20) // Padding inferior para el contenido
+                    .padding(.bottom, 20)
                 }
                 
-                // Bottom Navigation (same as HomeView)
+                // Bottom Navigation
                 VStack {
                     Spacer()
                     HStack {
-                        // Inicio
                         NavigationLink(destination: HomeView()) {
                             VStack {
                                 Image(systemName: "house")
@@ -205,7 +232,6 @@ struct RegisterIncidentView: View {
                         }
                         .frame(maxWidth: .infinity)
                         
-                        // Registrar Incidente (selected)
                         VStack {
                             Image(systemName: "doc.text.fill")
                                 .font(.system(size: 24))
@@ -216,7 +242,6 @@ struct RegisterIncidentView: View {
                         }
                         .frame(maxWidth: .infinity)
                         
-                        // Historial
                         NavigationLink(destination: HistorialView()) {
                             VStack {
                                 Image(systemName: "clock.fill")
@@ -229,7 +254,6 @@ struct RegisterIncidentView: View {
                         }
                         .frame(maxWidth: .infinity)
                         
-                        // Prevencion
                         NavigationLink(destination: PreventionView()) {
                             VStack {
                                 Image(systemName: "rosette")
@@ -259,102 +283,93 @@ struct RegisterIncidentView: View {
                         }
                     }
             }
+            .sheet(isPresented: $showCategorySheet) {
+                VStack(spacing: 0) {
+                    HStack {
+                        Text("Seleccionar Categoría")
+                            .font(Font.custom("Inter", size: 16).weight(.semibold))
+                        Spacer()
+                        Button("Listo") {
+                            showCategorySheet = false
+                        }
+                        .font(Font.custom("Roboto", size: 14))
+                        .foregroundColor(Color(red: 0.27, green: 0.35, blue: 0.39))
+                    }
+                    .padding()
+                    .background(Color.white)
+                    
+                    Divider()
+                    
+                    Picker("Categoría", selection: $selectedCategory) {
+                        ForEach(categoryMap.keys.sorted(), id: \.self) { key in
+                            Text(key).tag(key)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    
+                    Spacer()
+                }
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+            }
+        }
+        .navigationDestination(isPresented: Binding(
+            get: { createdId != nil },
+            set: { if !$0 { createdId = nil } }
+        )) {
+            SuccessView()
+        }
+    }
+    
+    private func submitIncident() {
+        let trimmedDesc = description.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedDesc.isEmpty else {
+            errorText = "La descripción es obligatoria."
+            showAlert = true
+            alertMessage = errorText ?? ""
+            return
+        }
+        guard let catId = categoryMap[selectedCategory] else {
+            errorText = "Selecciona una categoría válida."
+            showAlert = true
+            alertMessage = errorText ?? ""
+            return
+        }
+
+        var files: [Data] = []
+        if let img = inputImage,
+           let jpeg = img.jpegData(compressionQuality: 0.7) {
+            files = [jpeg]
+        }
+
+        let dto = CreateReportRequest(
+            pageURL: url,
+            description: trimmedDesc,
+            anonymous: isAnonymous,
+            categoryId: catId,
+            files: files
+        )
+
+        isSubmitting = true
+        errorText = nil
+
+        Task {
+            do {
+                let response = try await api.createReport(dto)
+                createdId = response.id
+                isSubmitting = false
+            } catch {
+                isSubmitting = false
+                errorText = (error as NSError).localizedDescription
+                alertMessage = errorText ?? "Ocurrió un error inesperado."
+                showAlert = true
+            }
         }
     }
 }
 
-// Mantener el resto del código igual (SuccessView, ImagePicker, etc.)
-    
-    // Success Screen
-    struct SuccessView: View {
-        var body: some View {
-            VStack(spacing: 20) {
-                Text("¡Éxito!")
-                    .font(Font.custom("Inter", size: 30).weight(.semibold))
-                    .foregroundColor(Color(red: 0.10, green: 0.10, blue: 0.12))
-                    .padding(.top, 100)
-                
-                Text("El incidente se registró con éxito y estará pendiente por aprobar por un administrador.")
-                    .font(Font.custom("Roboto", size: 16))
-                    .foregroundColor(Color.gray)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-                
-                Spacer()
-                
-                NavigationLink(destination: HomeView()) {
-                    Text("Regresar a Inicio")
-                        .font(Font.custom("Roboto", size: 16).weight(.semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color(red: 0.27, green: 0.35, blue: 0.39))
-                        .cornerRadius(20)
-                }
-                .padding(.horizontal)
-                
-                NavigationLink(destination: HistorialView()) {
-                    Text("Ir al Historial de Reportes")
-                        .font(Font.custom("Roboto", size: 16).weight(.semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(20)
-                }
-                .padding(.horizontal)
-                
-                Spacer()
-            }
-            .background(Color.white)
-            .navigationBarHidden(true)
-        }
-    }
-    
-    struct RegisterIncidentView_Previews: PreviewProvider {
-        static var previews: some View {
-            RegisterIncidentView()
-        }
-    }
-
-
-
-//struct para fotos
-struct ImagePicker: UIViewControllerRepresentable {
-    @Binding var image: UIImage?
-    let sourceType: UIImagePickerController.SourceType
-    @Environment(\.presentationMode) var presentationMode
-
-    func makeUIViewController(context: Context) -> UIImagePickerController {
-        let picker = UIImagePickerController()
-        picker.delegate = context.coordinator
-        picker.sourceType = sourceType
-        picker.allowsEditing = true
-        return picker
-    }
-
-    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-
-    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-        let parent: ImagePicker
-
-        init(_ parent: ImagePicker) {
-            self.parent = parent
-        }
-
-        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
-            if let uiImage = info[.editedImage] as? UIImage ?? info[.originalImage] as? UIImage {
-                parent.image = uiImage
-            }
-            parent.presentationMode.wrappedValue.dismiss()
-        }
-
-        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-            parent.presentationMode.wrappedValue.dismiss()
-        }
+struct Incidentis: PreviewProvider {
+    static var previews: some View {
+        RegisterIncidentView()
     }
 }

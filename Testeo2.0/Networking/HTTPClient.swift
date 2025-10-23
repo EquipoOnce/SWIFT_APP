@@ -10,7 +10,7 @@ import Foundation
 struct HTTPClient {
     
     func UserRegistration(_ request: RegistrationRequest) async throws {
-        guard let url = URL(string: "http://10.48.228.126:3000/users") else {
+        guard let url = URL(string: "http://10.48.251.159:3000/users") else {
             throw URLError(.badURL)
     }
         
@@ -35,7 +35,7 @@ struct HTTPClient {
     
     func UserLogin(email:String, password:String) async throws -> LoginResponse{
         let loginReequest = LoginRequest(email:email, password:password)
-        guard let url = URL(string: "http://10.48.228.126:3000/auth/login") else {
+        guard let url = URL(string: "http://10.48.251.159:3000/auth/login") else {
             throw URLError(.badURL)
         }
         var urlRequest = URLRequest(url: url)
@@ -59,7 +59,7 @@ struct HTTPClient {
     
     func refreshAccessToken(refreshToken: String) async throws -> String{
         let refreshRequest = RefreshRequest(refreshToken: refreshToken)
-        guard let url = URL(string: "http://10.48.228.122:3000/auth/refresh") else {
+        guard let url = URL(string: "http://10.48.251.159:3000/auth/refresh") else {
             throw URLError(.badURL)
         }
         var urlRequest = URLRequest(url: url)
