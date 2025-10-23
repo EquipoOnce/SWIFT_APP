@@ -14,7 +14,7 @@ Características Principales
 - Soporte Anónimo: Opción para reportar de forma anónima
 
 
-##Frontend
+#Frontend
 - SwiftUI - Framework declarativo para UI
 - iOS 16.0+ - Versión mínima requerida
 - Xcode 16.4+
