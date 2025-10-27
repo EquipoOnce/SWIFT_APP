@@ -22,7 +22,7 @@ Una aplicación iOS nativa desarrollada en SwiftUI que permite a los usuarios re
 ## Backend
 Consultar los demas repositorios que pertenencen a esta organizacion
 
-##Networking & Seguridad
+## Networking & Seguridad
 
 - URLSession - Cliente HTTP nativo
 - JWT Authentication - Access/Refresh Tokens
